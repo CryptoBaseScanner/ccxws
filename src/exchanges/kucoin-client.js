@@ -44,7 +44,7 @@ class KucoinClient extends BasicClient {
     if (this._wss) {
       this._wss.send(JSON.stringify({
         "id": new Date().getTime(),
-        "type": "ping"
+        "type": "ping",
       }));
     }
   }
@@ -91,8 +91,8 @@ class KucoinClient extends BasicClient {
         "type": "subscribe",
         "topic": "/market/snapshot:" + remote_id,
         "privateChannel": false,
-        "response": true
-      })
+        "response": true,
+      }),
     );
   }
 
@@ -103,8 +103,8 @@ class KucoinClient extends BasicClient {
         "type": "unsubscribe",
         "topic": "/market/snapshot:" + remote_id,
         "privateChannel": false,
-        "response": true
-      })
+        "response": true,
+      }),
     );
   }
 
@@ -115,8 +115,8 @@ class KucoinClient extends BasicClient {
         "type": "subscribe",
         "topic": "/market/match:" + remote_id,
         "privateChannel": false,
-        "response": true
-      })
+        "response": true,
+      }),
     );
   }
 
@@ -127,23 +127,25 @@ class KucoinClient extends BasicClient {
         "type": "unsubscribe",
         "topic": "/market/match:" + remote_id,
         "privateChannel": false,
-        "response": true
-      })
+        "response": true,
+      }),
     );
   }
 
   _sendSubLevel2Updates(remote_id) {
     let market = this._level2UpdateSubs.get(remote_id);
-    this._requestLevel2Snapshot(market);
+    this._loadingL2Snapshot = true;
+    this._queueL2History = [];
 
     this._wss.send(
       JSON.stringify({
         "id": new Date().getTime(),
         "type": "subscribe",
         "topic": "/market/level2:" + remote_id,
-        "response": true
-      })
+        "response": true,
+      }),
     );
+    this._requestLevel2Snapshot(market);
   }
 
   _sendUnsubLevel2Updates(remote_id) {
@@ -152,8 +154,8 @@ class KucoinClient extends BasicClient {
         "id": new Date().getTime(),
         "type": "unsubscribe",
         "topic": "/market/level2:" + remote_id,
-        "response": true
-      })
+        "response": true,
+      }),
     );
   }
 
@@ -262,7 +264,7 @@ class KucoinClient extends BasicClient {
   }
 
   _processL2Update(msg) {
-    const { symbol, changes } = msg.data;
+    const { symbol, changes, sequenceStart } = msg.data;
     let market = this._level2UpdateSubs.get(symbol);
 
     if (!market) {
@@ -275,11 +277,17 @@ class KucoinClient extends BasicClient {
       exchange: "KuCoin",
       base: market.base,
       quote: market.quote,
+      sequence: parseInt(sequenceStart),
       timestampMs: new Date().getTime(),
       asks,
       bids,
     });
-    this.emit("l2update", l2Update, market);
+
+    if (this._loadingL2Snapshot) {
+      this._queueL2History.push(l2Update);
+    } else {
+      this.emit("l2update", l2Update, market);
+    }
   }
 
   async _requestLevel2Snapshot(market) {
@@ -289,15 +297,46 @@ class KucoinClient extends BasicClient {
         let uri = `https://api.kucoin.com/api/v1/market/orderbook/level2_100?symbol=${remote_id}`;
         let raw = await https.get(uri);
 
-        let asks = raw.data.asks.map(p => new Level2Point(p[0], p[1]));
-        let bids = raw.data.bids.map(p => new Level2Point(p[0], p[1]));
+        let asks = {};
+        let bids = {};
+
+        raw.data.asks.map(p => asks[Number(p[0]).toFixed(12)] = new Level2Point(p[0], p[1]));
+        raw.data.bids.map(p => bids[Number(p[0]).toFixed(12)] = new Level2Point(p[0], p[1]));
+
+        let sequenceId = parseInt(raw.data.sequence);
+
+        this._loadingL2Snapshot = false;
+
+        this._queueL2History.map((update) => {
+          if (update.sequence > sequenceId) {
+            update.asks.map((point) => {
+              if (Number(point.size) > 0) {
+                asks[Number(point.price).toFixed(12)] = point;
+              } else {
+                delete asks[Number(point.price).toFixed(12)];
+              }
+            });
+
+            update.bids.map((point) => {
+              if (Number(point.size) > 0) {
+                bids[Number(point.price).toFixed(12)] = point;
+              } else {
+                delete bids[Number(point.price).toFixed(12)];
+              }
+            });
+          }
+        });
+
+        this._queueL2History = [];
+
         let snapshot = new Level2Snapshot({
           exchange: "KuCoin",
           base: market.base,
           quote: market.quote,
-          asks,
-          bids,
+          asks: Object.values(asks).sort(({ price: left }, { price: right }) => Number(left) - Number(right)),
+          bids: Object.values(bids).sort(({ price: left }, { price: right }) => Number(right) - Number(left)),
         });
+
         this.emit("l2snapshot", snapshot);
       } catch (ex) {
         this.emit("error", ex);
