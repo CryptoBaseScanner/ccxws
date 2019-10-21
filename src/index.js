@@ -1,6 +1,7 @@
 const bibox = require("./exchanges/bibox-client");
 const binance = require("./exchanges/binance-client");
 const binanceje = require("./exchanges/binanceje-client");
+const binanceus = require("./exchanges/binanceus-client");
 const bitfinex = require("./exchanges/bitfinex-client");
 const bitflyer = require("./exchanges/bitflyer-client");
 const bitmex = require("./exchanges/bitmex-client");
@@ -26,6 +27,7 @@ module.exports = {
   bibox,
   binance,
   binanceje,
+  binanceus,
   bitfinex,
   bitflyer,
   bitmex,
@@ -72,6 +74,8 @@ module.exports = {
   Auction: require("./auction"),
   BasicClient: require("./basic-client"),
   BlockTrade: require("./block-trade"),
+  Candle: require("./candle"),
+  CandlePeriod: require("./enums").CandlePeriod,
   Level2Point: require("./level2-point"),
   Level2Snapshot: require("./level2-snapshot"),
   Level2Update: require("./level2-update"),

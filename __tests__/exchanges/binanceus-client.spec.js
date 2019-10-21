@@ -1,31 +1,39 @@
 const { testClient } = require("../test-runner");
-const CoinexClient = require("../../src/exchanges/coinex-client");
+const BinanceUSClient = require("../../src/exchanges/binanceus-client");
 
 testClient({
-  clientFactory: () => new CoinexClient(),
-  clientName: "CoinexClient",
-  exchangeName: "Coinex",
+  clientFactory: () => new BinanceUSClient(),
+  clientName: "BinanceUSClient",
+  exchangeName: "BinanceUS",
   markets: [
     {
-      id: "BTCUSDT",
+      id: "BTCUSD",
       base: "BTC",
-      quote: "USDT",
+      quote: "USD",
     },
     {
-      id: "LTCBTC",
-      base: "LTC",
-      quote: "BTC",
-    },
-    {
-      id: "ETHBTC",
+      id: "ETHUSD",
       base: "ETH",
-      quote: "BTC",
+      quote: "USD",
+    },
+    {
+      id: "XRPUSD",
+      base: "XRP",
+      quote: "USD",
+    },
+    {
+      id: "BCHUSD",
+      base: "BCH",
+      quote: "USD",
+    },
+    {
+      id: "LTCUSD",
+      base: "LTC",
+      quote: "USD",
     },
   ],
 
-  getEventingSocket(client, market) {
-    return client._clients.get(market.id).then(c => c._wss);
-  },
+  skip: false,
 
   testConnectEvents: true,
   testDisconnectEvents: true,
@@ -34,8 +42,8 @@ testClient({
 
   hasTickers: true,
   hasTrades: true,
-  hasCandles: false,
-  hasLevel2Snapshots: false,
+  hasCandles: true,
+  hasLevel2Snapshots: true,
   hasLevel2Updates: true,
   hasLevel3Snapshots: false,
   hasLevel3Updates: false,
@@ -50,26 +58,28 @@ testClient({
     hasQuoteVolume: true,
     hasChange: true,
     hasChangePercent: true,
-    hasBid: false,
-    hasBidVolume: false,
-    hasAsk: false,
-    hasAskVolume: false,
+    hasBid: true,
+    hasBidVolume: true,
+    hasAsk: true,
+    hasAskVolume: true,
   },
 
   trade: {
     hasTradeId: true,
   },
 
+  candle: {},
+
   l2snapshot: {
     hasTimestampMs: false,
-    hasSequenceId: false,
+    hasSequenceId: true,
     hasCount: false,
   },
 
   l2update: {
     hasSnapshot: true,
     hasTimestampMs: false,
-    hasSequenceId: false,
+    hasSequenceId: true,
     hasCount: false,
   },
 });

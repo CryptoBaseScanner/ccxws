@@ -13,10 +13,14 @@ const Watcher = require("../watcher");
 const { CandlePeriod } = require("../enums");
 const { candlePeriod } = require("./binance-base");
 
-class BinanceClient extends EventEmitter {
-  constructor({ useAggTrades = true, requestSnapshot = true, reconnectIntervalMs = 300000 } = {}) {
+class BinanceUSClient extends EventEmitter {
+  constructor({
+    useAggTrades = true,
+    requestSnapshot = true,
+    reconnectIntervalMs = 10 * 60000,
+  } = {}) {
     super();
-    this._name = "Binance";
+    this._name = "BinanceUS";
     this._tickerSubs = new Map();
     this._tradeSubs = new Map();
     this._candleSubs = new Map();
@@ -169,7 +173,7 @@ class BinanceClient extends EventEmitter {
         streams.push("!ticker@arr");
       }
 
-      let wssPath = "wss://stream.binance.com:9443/stream?streams=" + streams.join("/");
+      let wssPath = "wss://stream.binance.us:9443/stream?streams=" + streams.join("/");
 
       this._wss = new SmartWss(wssPath);
       this._wss.on("error", this._onError.bind(this));
@@ -300,7 +304,7 @@ class BinanceClient extends EventEmitter {
     } = msg;
     let open = parseFloat(last) + parseFloat(change);
     return new Ticker({
-      exchange: "Binance",
+      exchange: "BinanceUS",
       base: market.base,
       quote: market.quote,
       timestamp: timestamp,
@@ -325,7 +329,7 @@ class BinanceClient extends EventEmitter {
     let amount = size;
     let side = buyer ? "buy" : "sell";
     return new Trade({
-      exchange: "Binance",
+      exchange: "BinanceUS",
       base: market.base,
       quote: market.quote,
       tradeId: trade_id.toFixed(),
@@ -342,7 +346,7 @@ class BinanceClient extends EventEmitter {
     let amount = size;
     let side = buyer ? "buy" : "sell";
     return new Trade({
-      exchange: "Binance",
+      exchange: "BinanceUS",
       base: market.base,
       quote: market.quote,
       tradeId: trade_id,
@@ -355,32 +359,6 @@ class BinanceClient extends EventEmitter {
     });
   }
 
-  /**
-   * Kline data looks like:
-   { stream: 'btcusdt@kline_1m',
-    data:
-    { e: 'kline',
-      E: 1571068845689,
-      s: 'BTCUSDT',
-      k:
-        { t: 1571068800000,
-          T: 1571068859999,
-          s: 'BTCUSDT',
-          i: '1m',
-          f: 189927800,
-          L: 189928107,
-          o: '8254.05000000',
-          c: '8253.61000000',
-          h: '8256.58000000',
-          l: '8250.93000000',
-          v: '19.10571600',
-          n: 308,
-          x: false,
-          q: '157694.32610840',
-          V: '8.19456200',
-          Q: '67640.56793106',
-          B: '0' } } }
-   */
   _constructCandle({ data }) {
     let k = data.k;
     return new Candle(k.t, k.o, k.h, k.l, k.c, k.v);
@@ -391,7 +369,7 @@ class BinanceClient extends EventEmitter {
     let asks = msg.data.asks.map(p => new Level2Point(p[0], p[1]));
     let bids = msg.data.bids.map(p => new Level2Point(p[0], p[1]));
     return new Level2Snapshot({
-      exchange: "Binance",
+      exchange: "BinanceUS",
       base: market.base,
       quote: market.quote,
       sequenceId,
@@ -406,7 +384,7 @@ class BinanceClient extends EventEmitter {
     let asks = msg.data.a.map(p => new Level2Point(p[0], p[1]));
     let bids = msg.data.b.map(p => new Level2Point(p[0], p[1]));
     return new Level2Update({
-      exchange: "Binance",
+      exchange: "BinanceUS",
       base: market.base,
       quote: market.quote,
       sequenceId,
@@ -426,15 +404,16 @@ class BinanceClient extends EventEmitter {
 
   async _requestLevel2Snapshot(market) {
     this._restSem.take(async () => {
+      let failed = false;
       try {
         let remote_id = market.id;
-        let uri = `https://api.binance.com/api/v1/depth?limit=1000&symbol=${remote_id}`;
+        let uri = `https://api.binance.us/api/v1/depth?limit=1000&symbol=${remote_id}`;
         let raw = await https.get(uri);
         let sequenceId = raw.lastUpdateId;
         let asks = raw.asks.map(p => new Level2Point(p[0], p[1]));
         let bids = raw.bids.map(p => new Level2Point(p[0], p[1]));
         let snapshot = new Level2Snapshot({
-          exchange: "Binance",
+          exchange: "BinanceUS",
           base: market.base,
           quote: market.quote,
           sequenceId,
@@ -444,11 +423,14 @@ class BinanceClient extends EventEmitter {
         this.emit("l2snapshot", snapshot, market);
       } catch (ex) {
         this.emit("error", ex);
+        failed = true;
       } finally {
+        await wait(this.REST_REQUEST_DELAY_MS);
         this._restSem.leave();
+        if (failed) this._requestLevel2Snapshot(market);
       }
     });
   }
 }
 
-module.exports = BinanceClient;
+module.exports = BinanceUSClient;
