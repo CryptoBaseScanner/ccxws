@@ -102,7 +102,7 @@ class BitmexClient extends BasicClient {
   }
 
   _constructTrades(datum, market) {
-    let { size, side, timestamp, price, trdMatchID } = datum;
+    let { homeNotional, side, timestamp, price, trdMatchID } = datum;
     let unix = moment(timestamp).valueOf();
     return new Trade({
       exchange: "BitMEX",
@@ -113,7 +113,7 @@ class BitmexClient extends BasicClient {
       unix,
       side: side.toLowerCase(),
       price: price.toFixed(8),
-      amount: size.toFixed(8),
+      amount: homeNotional.toFixed(8),
       raw: datum, // attach the raw data incase it is needed in raw format
     });
   }
