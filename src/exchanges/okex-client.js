@@ -372,7 +372,7 @@ class OKExClient extends BasicClient {
       high: high_24h,
       low: low_24h,
       volume: base_volume_24h,
-      change: change.toFixed(8),
+      change: change.toFixed(12),
       changePercent: changePercent.toFixed(2),
       bid: best_bid,
       ask: best_ask,

@@ -160,7 +160,7 @@ class HitBTCClient extends BasicClient {
 
   _constructTicker(param, market) {
     let { ask, bid, last, open, low, high, volume, volumeQuote, timestamp } = param;
-    let change = (parseFloat(last) - parseFloat(open)).toFixed(8);
+    let change = (parseFloat(last) - parseFloat(open)).toFixed(12);
     let changePercent = (((parseFloat(last) - parseFloat(open)) / parseFloat(open)) * 100).toFixed(
       8
     );

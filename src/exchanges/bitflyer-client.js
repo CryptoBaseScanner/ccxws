@@ -142,13 +142,13 @@ class BitFlyerClient extends BasicClient {
       base: market.base,
       quote: market.quote,
       timestamp: moment.utc(timestamp).valueOf(),
-      last: ltp.toFixed(8),
-      volume: volume.toFixed(8),
-      quoteVolume: volume_by_product.toFixed(8),
-      bid: best_bid.toFixed(8),
-      bidVolume: best_bid_size.toFixed(8),
-      ask: best_ask.toFixed(8),
-      askVolume: best_ask_size.toFixed(8),
+      last: ltp.toFixed(12),
+      volume: volume.toFixed(12),
+      quoteVolume: volume_by_product.toFixed(12),
+      bid: best_bid.toFixed(12),
+      bidVolume: best_bid_size.toFixed(12),
+      ask: best_ask.toFixed(12),
+      askVolume: best_ask_size.toFixed(12),
     });
   }
 
@@ -173,16 +173,16 @@ class BitFlyerClient extends BasicClient {
       tradeId: id.toFixed(),
       unix,
       side: side.toLowerCase(),
-      price: price.toFixed(8),
-      amount: size.toFixed(8),
+      price: price.toFixed(12),
+      amount: size.toFixed(12),
       buyOrderId: buy_child_order_acceptance_id,
       sellOrderId: sell_child_order_acceptance_id,
     });
   }
 
   _createLevel2Update(msg, market) {
-    let asks = msg.asks.map(p => new Level2Point(p.price.toFixed(8), p.size.toFixed(8)));
-    let bids = msg.bids.map(p => new Level2Point(p.price.toFixed(8), p.size.toFixed(8)));
+    let asks = msg.asks.map(p => new Level2Point(p.price.toFixed(12), p.size.toFixed(12)));
+    let bids = msg.bids.map(p => new Level2Point(p.price.toFixed(12), p.size.toFixed(12)));
 
     return new Level2Update({
       exchange: "bitFlyer",
@@ -199,8 +199,8 @@ class BitFlyerClient extends BasicClient {
         let remote_id = market.id;
         let uri = `https://api.bitflyer.com/v1/board?product_code=${remote_id}`;
         let raw = await https.get(uri);
-        let asks = raw.asks.map(p => new Level2Point(p.price.toFixed(8), p.size.toFixed(8)));
-        let bids = raw.bids.map(p => new Level2Point(p.price.toFixed(8), p.size.toFixed(8)));
+        let asks = raw.asks.map(p => new Level2Point(p.price.toFixed(12), p.size.toFixed(12)));
+        let bids = raw.bids.map(p => new Level2Point(p.price.toFixed(12), p.size.toFixed(12)));
         let snapshot = new Level2Snapshot({
           exchange: "bitFlyer",
           base: market.base,

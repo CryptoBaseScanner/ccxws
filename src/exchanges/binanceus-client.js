@@ -309,7 +309,7 @@ class BinanceUSClient extends EventEmitter {
       quote: market.quote,
       timestamp: timestamp,
       last,
-      open: open.toFixed(8),
+      open: open.toFixed(12),
       high,
       low,
       volume,

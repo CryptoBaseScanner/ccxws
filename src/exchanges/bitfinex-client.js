@@ -172,17 +172,17 @@ class BitfinexClient extends BasicClient {
       base: market.base,
       quote: market.quote,
       timestamp: Date.now(),
-      last: last.toFixed(8),
-      open: open.toFixed(8),
-      high: high.toFixed(8),
-      low: low.toFixed(8),
-      volume: volume.toFixed(8),
-      change: change.toFixed(8),
+      last: last.toFixed(12),
+      open: open.toFixed(12),
+      high: high.toFixed(12),
+      low: low.toFixed(12),
+      volume: volume.toFixed(12),
+      change: change.toFixed(12),
       changePercent: changePercent.toFixed(2),
-      bid: bid.toFixed(8),
-      bidVolume: bidSize.toFixed(8),
-      ask: ask.toFixed(8),
-      askVolume: askSize.toFixed(8),
+      bid: bid.toFixed(12),
+      bidVolume: bidSize.toFixed(12),
+      ask: ask.toFixed(12),
+      askVolume: askSize.toFixed(12),
     });
     this.emit("ticker", ticker, market);
   }
@@ -190,8 +190,8 @@ class BitfinexClient extends BasicClient {
   _onTradeMessage(msg, market) {
     let [, , , id, unix, price, amount] = msg;
     let side = amount > 0 ? "buy" : "sell";
-    price = price.toFixed(8);
-    amount = Math.abs(amount).toFixed(8);
+    price = price.toFixed(12);
+    amount = Math.abs(amount).toFixed(12);
     let trade = new Trade({
       exchange: "Bitfinex",
       base: market.base,
@@ -210,7 +210,7 @@ class BitfinexClient extends BasicClient {
     let asks = [];
     for (let [price, count, size] of msg[1]) {
       let isBid = size > 0;
-      let result = new Level2Point(price.toFixed(8), Math.abs(size).toFixed(8), count.toFixed(0));
+      let result = new Level2Point(price.toFixed(12), Math.abs(size).toFixed(12), count.toFixed(0));
       if (isBid) bids.push(result);
       else asks.push(result);
     }
@@ -228,7 +228,7 @@ class BitfinexClient extends BasicClient {
     // eslint-disable-next-line no-unused-vars
     let [channelId, price, count, size] = msg;
     if (!price.toFixed) return;
-    let point = new Level2Point(price.toFixed(8), Math.abs(size).toFixed(8), count.toFixed(0));
+    let point = new Level2Point(price.toFixed(12), Math.abs(size).toFixed(12), count.toFixed(0));
     let asks = [];
     let bids = [];
 
@@ -237,7 +237,7 @@ class BitfinexClient extends BasicClient {
     else asks.push(point);
 
     let isDelete = count === 0;
-    if (isDelete) point.size = (0).toFixed(8); // reset the size to 0, comes in as 1 or -1 to indicate bid/ask
+    if (isDelete) point.size = (0).toFixed(12); // reset the size to 0, comes in as 1 or -1 to indicate bid/ask
 
     let update = new Level2Update({
       exchange: "Bitfinex",
@@ -253,7 +253,7 @@ class BitfinexClient extends BasicClient {
     let bids = [];
     let asks = [];
     msg[1].forEach(p => {
-      let point = new Level3Point(p[0].toFixed(), p[1].toFixed(8), Math.abs(p[2]).toFixed(8));
+      let point = new Level3Point(p[0].toFixed(), p[1].toFixed(12), Math.abs(p[2]).toFixed(12));
       if (p[2] > 0) bids.push(point);
       else asks.push(point);
     });
@@ -271,7 +271,7 @@ class BitfinexClient extends BasicClient {
     let bids = [];
     let asks = [];
 
-    let point = new Level3Point(msg[1].toFixed(), msg[2].toFixed(8), Math.abs(msg[3]).toFixed(8));
+    let point = new Level3Point(msg[1].toFixed(), msg[2].toFixed(12), Math.abs(msg[3]).toFixed(12));
     if (msg[3] > 0) bids.push(point);
     else asks.push(point);
 

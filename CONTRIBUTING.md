@@ -28,7 +28,7 @@ Numeric values are returned as strings to prevent data loss. JavaScript Numeric 
 
 Many exchanges return API results with numeric values as strings already. In the event that an exchange does not return values as strings, you can take two options:
 
-1. Convert numerics to strings with `.toFixed(8)`
+1. Convert numerics to strings with `.toFixed(12)`
 2. Preprocess the raw message string and wrap numerics with double quotes prior to running `JSON.parse`
 
 The former method is preferred if an exchange does not return values that overflow (refer to the number of digits being sent). The latter is required when data would overflow due to the exchange sending large numeric types.

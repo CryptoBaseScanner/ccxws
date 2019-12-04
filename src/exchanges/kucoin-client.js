@@ -257,7 +257,7 @@ class KucoinClient extends BasicClient {
       high: high,
       low: low,
       volume: vol,
-      change: changePrice.toFixed ? changePrice.toFixed(8) : changePrice,
+      change: changePrice.toFixed ? changePrice.toFixed(12) : changePrice,
       changePercent: changeRate.toFixed ? changeRate.toFixed(2) : changeRate,
       bid: buy,
       ask: sell,

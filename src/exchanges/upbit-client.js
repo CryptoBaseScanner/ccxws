@@ -173,7 +173,7 @@ class UpbitClient extends BasicClient {
       high: high_price,
       low: low_price,
       volume: acc_trade_volume,
-      quoteVolume: (acc_trade_volume * trade_price).toFixed(8),
+      quoteVolume: (acc_trade_volume * trade_price).toFixed(12),
       change: change_price,
       changePercent: change_rate,
     });
@@ -247,7 +247,7 @@ class UpbitClient extends BasicClient {
 
 function s(v) {
   if (typeof v === "number") {
-    return v.toFixed(8);
+    return v.toFixed(12);
   } else {
     return v;
   }

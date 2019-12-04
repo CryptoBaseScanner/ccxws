@@ -40,7 +40,7 @@ const multiplier = {
 };
 
 function formatAmount(amount, symbol) {
-  return (parseInt(amount) / multiplier[symbol]).toFixed(8);
+  return (parseInt(amount) / multiplier[symbol]).toFixed(12);
 }
 
 class CexClient extends BasicMultiClient {
@@ -235,14 +235,14 @@ class SingleCexClient extends BasicClient {
       last: price,
       open: open24,
       volume: volume,
-      change: change.toFixed(8),
-      changePercent: changePercent.toFixed(8),
+      change: change.toFixed(12),
+      changePercent: changePercent.toFixed(12),
     });
   }
 
   _constructevel2Snapshot(msg, market) {
-    let asks = msg.sell.map(p => new Level2Point(p[0].toFixed(8), formatAmount(p[1], market.base)));
-    let bids = msg.buy.map(p => new Level2Point(p[0].toFixed(8), formatAmount(p[1], market.base)));
+    let asks = msg.sell.map(p => new Level2Point(p[0].toFixed(12), formatAmount(p[1], market.base)));
+    let bids = msg.buy.map(p => new Level2Point(p[0].toFixed(12), formatAmount(p[1], market.base)));
 
     return new Level2Snapshot({
       exchange: "CEX",
